@@ -1,0 +1,32 @@
+# include <iostream>
+#include<thread>
+#include<unistd.h>
+#include<mutex>
+using namespace std;
+
+int cnt = 0;
+
+mutex mtx;
+
+void taskA(){
+    mtx.lock();
+    for(int i=0;i<100000;i++){
+        cnt++;
+    }
+    mtx.unlock();
+}
+
+int main(){
+
+//   it shows mututal exclusion
+  
+  thread t1(taskA);
+  thread t2(taskA);
+
+  t1.join();
+  t2.join();
+   
+  cout<<cnt<<endl;
+
+   return 0;
+}
