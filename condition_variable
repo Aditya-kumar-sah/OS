@@ -1,0 +1,58 @@
+//condition variable
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+
+using namespace std;
+
+// Shared data and synchronization primitives
+mutex mtx;
+condition_variable cv;
+bool data_ready = false;
+
+void producer() {
+    // Simulate time-consuming data preparation
+    this_thread::sleep_for(chrono::seconds(2));
+
+    // Lock the mutex before modifying shared data
+    {
+        lock_guard<mutex> lock(mtx);
+        data_ready = true;
+        cout << "Producer: Data is ready." << endl;
+    } // lock_guard releases the lock here
+
+    // Notify the consumer
+    cv.notify_one();
+}
+
+void consumer() {
+    unique_lock<mutex> lock(mtx);
+    
+    // Wait until data_ready becomes true
+    cv.wait(lock, [] { return data_ready; });
+
+    cout << "Consumer: Data consumed." << endl;
+}
+
+int main() {
+    thread t1(consumer);
+    thread t2(producer);
+
+    t1.join();
+    t2.join();
+
+    return 0;
+}
+
+// data_ready is false initially.
+
+// The consumer locks the mutex and waits on cv until data_ready becomes true.
+
+// The producer sleeps for 2 seconds, sets data_ready = true, and calls cv.notify_one().
+
+// The consumer wakes up, checks the condition, and prints "Data consumed."
+
+
+
